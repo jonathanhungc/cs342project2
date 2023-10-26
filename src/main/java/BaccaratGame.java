@@ -271,18 +271,6 @@ public class BaccaratGame extends Application {
 		playerArea.setPrefSize(670, 400);
 		playerArea.setAlignment(Pos.CENTER);
 
-		/*
-		// horizontal for the player cards
-		HBox playerCards = new HBox(30);
-		playerCards.setPrefSize(670, 300);
-		playerCards.setAlignment(Pos.CENTER);
-
-		// adding test cards
-		playerCards.getChildren().add(getCardIcon(new Card("clubs", 2)));
-		playerCards.getChildren().add(getCardIcon(new Card("clubs", 5)));
-		playerCards.getChildren().add(getCardIcon(new Card("diamonds", 12)));
-		*/
-
 		playerCards = new TilePane(20, 0);
 		playerCards.setPrefSize(670, 300);
 		playerCards.setOrientation(Orientation.HORIZONTAL);
@@ -299,14 +287,6 @@ public class BaccaratGame extends Application {
 		bankerArea.setPrefSize(670, 400);
 		bankerArea.setAlignment(Pos.CENTER);
 
-		// horizontal for the banker cards
-//		HBox bankerCards = new HBox(30);
-//		bankerCards.setPrefSize(670, 300);
-//		bankerCards.setAlignment(Pos.CENTER);
-//
-//		// adding test cards
-//		bankerCards.getChildren().add(getCardIcon(new Card("hearts", 8)));
-//		bankerCards.getChildren().add(getCardIcon(new Card("spades", 11)));
 
 		// add text for banker and area for banker cards
 		bankerCards = new TilePane(20, 0);
