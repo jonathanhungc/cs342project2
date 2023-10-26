@@ -56,19 +56,19 @@ public class BaccaratGameLogic {
 
         else if (handValue <= 2) { return true; }
 
-        // player hand is 1, 2, 3, 4, 5, 6, 7, 9
+        // player card is 2, 3, 4, 5, 6, 7, 9, 10, J, K, Q, A
         else if (handValue == 3 && playerCard.value != 8) { return true; }
 
-        // player hand is 2, 3, 4, 5, 6, 7
+        // player card is 2, 3, 4, 5, 6, 7
         else if (handValue == 4 && (playerCard.value == 2 || playerCard.value == 3 ||
                 playerCard.value == 4 || playerCard.value == 5 ||
                 playerCard.value == 6 || playerCard.value == 7)) { return true; }
 
-        // player hand is 4, 5, 6, 7
+        // player card is 4, 5, 6, 7
         else if (handValue == 5 && (playerCard.value == 4 || playerCard.value == 5 ||
                 playerCard.value == 6 || playerCard.value == 7)) { return true; }
 
-        // player hand is 6, 7
+        // player card is 6, 7
         else return handValue == 6 && (playerCard.value == 6 || playerCard.value == 7);
 
     }
