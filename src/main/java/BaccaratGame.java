@@ -1,28 +1,48 @@
+/*
+ * Author: Yamaan Nandolia & Jonathan Hung
+ * NetID: ynand3@uic.edu & jhung9@uic.edu
+ * File Name: BaccaratGame.java
+ * Project Name: Baccarat JavaFX GUI
+ * System: VSCode on Mac
+ * File Description: This class manages the game state, user interactions, and GUI components for the Baccarat game.
+ */
+import java.util.ArrayList;
+import java.util.Objects;
+
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
-
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.TilePane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.scene.text.*;
-import javafx.scene.control.*;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
-
-
+/* 
+* BaccaratGame: Represents the main logic for the Baccarat game, handling gameplay and user interface.
+*/
+  
 public class BaccaratGame extends Application {
 
 	// used for game logic
@@ -30,33 +50,82 @@ public class BaccaratGame extends Application {
 	ArrayList<Card> bankerHand;
 	BaccaratDealer theDealer;
 	BaccaratGameLogic gameLogic;
-	double currentBet; // stores the current bet of the user
-	double totalWinnings; // stores all the winnings of the user
 	String handBet; // to store where the user is betting
+	double currentBet = 0; // stores the current bet of the user
+	double totalWinnings = 0; // stores all the winnings of the user
+	private boolean hasPlacedBet = false;
 
 	// event handlers
 	EventHandler<ActionEvent> goToPlayingScene, goToResultsPopup;
 
 	// JavaFX members
-	HashMap<String, Scene> sceneMap;
 	MenuBar menuBar;
 	Menu options;
 	MenuItem exitMenu, freshStart;
-	Button buttonBidPlayer, buttonBidBanker, buttonBidDraw, buttonStartGame;
+	Button buttonBidPlayer, buttonBidBanker, buttonBidDraw, buttonStartGame, buttonExitGame;
 
 	Text textTotalWinnings;
 	TextField textFieldBid;
 	TilePane playerCards, bankerCards;
 	PauseTransition pause = new PauseTransition(Duration.seconds(3));
+
+	/*
+     * main: The main method that launches the JavaFX application.
+     */
 	public static void main(String[] args) {
 		launch(args);
-	}
+	} // end of main()
 
+ 	/*
+     * resetGame: Resets the game state and prepares for a new game.
+     */
+	private void resetGame(Stage primaryStage) {
+		// Reset all relevant variables and data
+		currentBet = 0;
+		totalWinnings = 0;
+		// Add any other variables or data that need to be reset
+		textTotalWinnings.setText("0");
+		// Set the scene to the bidding screen
+		primaryStage.setScene(createStartScene());
+		primaryStage.centerOnScreen();
+	} // end of resetGame()
+
+	/**
+     * showErrorWindow: Displays an error window with the given error message.
+     */
+	private void showErrorWindow(String errorMessage) {
+		Stage errorStage = new Stage();
+		errorStage.initModality(Modality.APPLICATION_MODAL);
+		errorStage.initStyle(StageStyle.UNDECORATED);
+	
+		StackPane errorLayout = new StackPane();
+		errorLayout.setStyle("-fx-background-color: #ffaaaa;"); // Light red color
+		errorLayout.setAlignment(Pos.CENTER);
+	
+		Label errorLabel = new Label(errorMessage);
+		errorLabel.setFont(Font.font("courier new", FontWeight.BOLD, FontPosture.REGULAR, 20));
+		errorLabel.setTextFill(Color.BLACK);
+	
+		errorLayout.getChildren().add(errorLabel);
+	
+		Scene errorScene = new Scene(errorLayout, 500, 200);
+		errorStage.setScene(errorScene);
+	
+		// Automatically close the error window after 2 seconds
+		PauseTransition pause = new PauseTransition(Duration.seconds(3));
+		pause.setOnFinished(event -> errorStage.close());
+		pause.play();
+	
+		errorStage.showAndWait();
+	} // end of showErrorWindow
+
+	/*
+     * start: The main entry point for the JavaFX application.
+     */
 	public void start(Stage primaryStage) throws Exception {
 		primaryStage.setTitle("BACCARAT");
 
 		// map to hold scenes
-		sceneMap = new HashMap<String,Scene>();
 
 		// game members
 		theDealer = new BaccaratDealer();
@@ -74,16 +143,26 @@ public class BaccaratGame extends Application {
 		freshStart = new MenuItem("FRESH START");
 		freshStart.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent actionEvent) {
-				currentBet = 0;
-				totalWinnings = 0;
+				resetGame(primaryStage); // Call the resetGame method to reset the game state
+				hasPlacedBet = false; 
 			}
 		});
+
 		options.getItems().add(exitMenu);
 		options.getItems().add(freshStart);
 		menuBar.getMenus().add(options);
-		// ---------------------------------------------------------------------
 
-		// buttons to bid for player, banker or draw, and text field to enter bid -------
+		exitMenu.setOnAction(e -> {
+            if (!hasPlacedBet) {
+                showThankYouScreen(primaryStage);
+            } else {
+                primaryStage.setScene(createResultsScene(primaryStage));
+				primaryStage.centerOnScreen();
+				
+            }
+        });
+
+		// buttons to bid for player, banker or draw, and text field to enter bid
 		buttonBidPlayer = createBidButton("PLAYER");
 		buttonBidBanker = createBidButton("BANKER");
 		buttonBidDraw = createBidButton("DRAW");
@@ -97,10 +176,9 @@ public class BaccaratGame extends Application {
 		textTotalWinnings.setStyle("-fx-background-radius: 1em; " +
 				"-fx-background-color: white");
 		textTotalWinnings.setFont(Font.font("courier new", FontWeight.BOLD, FontPosture.REGULAR, 20));
-		// ----------------------------------------------------------------------------
 
 		// button to start game and go to playing scene
-		buttonStartGame = new Button("Start");
+		buttonStartGame = new Button("START");
 		buttonStartGame.setPrefSize(150, 75);
 		buttonStartGame.setStyle("-fx-background-radius: 1em; " +
 				"-fx-background-color: #afc7bb;" +
@@ -114,13 +192,25 @@ public class BaccaratGame extends Application {
 			}
 		});
 
+		buttonExitGame = new Button("EXIT");
+		buttonExitGame.setPrefSize(150, 75);
+		buttonExitGame.setStyle("-fx-background-radius: 1em; " +
+				"-fx-background-color: #afc7bb;" +
+				"-fx-font-size: 20;" +
+				"-fx-font-family: 'Courier New';" +
+				"-fx-font-weight: bold;");
+		buttonExitGame.setOnAction(e -> primaryStage.close());
+
 
 		// this event does the game logic of the game, and displays the results in the pop up game
-		// TODO: display the playing cards in the playingScene
 		goToResultsPopup = new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent actionEvent) {
 				Button b = (Button) actionEvent.getSource();
 
+				if (textFieldBid.getText().isEmpty()) {
+                    showErrorWindow("Please enter a bid and then bet!");
+                    return;
+                }
 				// set where the user is betting
 				if (b.getText().equals("PLAYER"))
 					handBet = "Player";
@@ -170,13 +260,43 @@ public class BaccaratGame extends Application {
 			}
 		};
 
-		sceneMap.put("playingScene", createPlayingScene());
-		sceneMap.put("startScene", createStartScene());
 
-		primaryStage.setScene(sceneMap.get("startScene"));
+		primaryStage.setScene(createStartScene());
 		primaryStage.centerOnScreen();
-		primaryStage.show();
-	}
+		primaryStage.show(); 
+	} // end of start()
+
+	/*
+     * createStartScene: Creates the start scene of the game.
+	 */
+	private void showThankYouScreen(Stage primaryStage) {
+        Stage thankYouStage = new Stage();
+        thankYouStage.initModality(Modality.APPLICATION_MODAL);
+        thankYouStage.initStyle(StageStyle.UNDECORATED);
+
+        Text thankYouText = new Text("THANK YOU FOR PLAYING!");
+        thankYouText.setFont(Font.font("courier new", FontWeight.BOLD, FontPosture.REGULAR, 25));
+
+        VBox thankYouLayout = new VBox();
+        thankYouLayout.setStyle("-fx-background-color: #278a2e;"); // Green color
+        thankYouLayout.setAlignment(Pos.CENTER);
+        thankYouLayout.getChildren().add(thankYouText);
+
+        Scene thankYouScene = new Scene(thankYouLayout, 600, 400);
+        thankYouStage.setScene(thankYouScene);
+
+        // Automatically close the thank you window after 6 seconds
+        PauseTransition pause = new PauseTransition(Duration.seconds(6));
+        pause.setOnFinished(event -> thankYouStage.close());
+        pause.play();
+
+		primaryStage.close();
+        thankYouStage.showAndWait();
+    } // end of createStartScene()
+
+	/*
+	 * cardTransition: Initiates a card transition animation during the Baccarat game.
+	 */
 	private void cardTransition(TilePane player, TilePane banker, ArrayList<Card> handPlayer, ArrayList<Card> handBanker, Stage primaryStage) {
 
 		pause = new PauseTransition(Duration.seconds(1));
@@ -207,9 +327,11 @@ public class BaccaratGame extends Application {
 		if (current[0] == 0)
 			pause.play();
 
-	}
+	} // end of cardTransition()
 
-	// used to create bid buttons
+	/*
+	 * createBidButton: Creates a bid button with the specified name.
+	 */
 	private Button createBidButton(String name) {
 
 		Button b = new Button(name);
@@ -218,9 +340,11 @@ public class BaccaratGame extends Application {
 				"-fx-background-color: #afc7bb;");
 
 		return b;
-	}
+	} // end of createBidButton()
 
-	// method used to get card icons
+	/*
+	 * getCardIcon: Retrieves the ImageView representation of a given card.
+	 */
 	public ImageView getCardIcon(Card card) {
 		String cardVal = Integer.toString(card.value);
 		String cardSuit = card.suite;
@@ -247,8 +371,11 @@ public class BaccaratGame extends Application {
 		cardIcon.setFitWidth(125);
 
 		return cardIcon;
-	}
+	} // end of getCardIcon()
 
+	/*
+	 * createPlayingScene: Creates the playing scene for the Baccarat game.
+	 */
 	public Scene createPlayingScene() {
 
 		// text for playing scene --------------------------------------------------------------------
@@ -317,8 +444,11 @@ public class BaccaratGame extends Application {
 		playingArea.setStyle("-fx-background-color: #278a2e;");
 
 		return new Scene(playingArea, 1400, 600);
-	}
+	} // end of createPlayingScene()
 
+	/*
+	 * createStartScene: Creates the starting scene for the Baccarat game.
+	 */
 	public Scene createStartScene() {
 		Text textStart = new Text("Welcome to the casino!");
 		textStart.setFont(Font.font("courier new", FontWeight.BOLD, FontPosture.REGULAR, 40));
@@ -328,13 +458,16 @@ public class BaccaratGame extends Application {
 		imageCasino.setFitWidth(170);
 
 		// holds an image of a casino, welcome message and start button
-		VBox startBox = new VBox(50, imageCasino, textStart, buttonStartGame);
+		VBox startBox = new VBox(50, imageCasino, textStart, buttonStartGame, buttonExitGame);
 		startBox.setAlignment(Pos.CENTER);
 		startBox.setStyle("-fx-background-color: #278a2e;");
 
-		return new Scene(startBox,600, 500);
-	}
+		return new Scene(startBox,600, 600);
+	} // end of createStartScene()
 
+	/*
+	 * createResultsScene: Creates the results scene for the Baccarat game.
+	 */
 	public Scene createResultsScene(Stage primaryStage) {
 
 		Text textThanks = new Text("THANK YOU FOR PLAYING!");
@@ -361,8 +494,11 @@ public class BaccaratGame extends Application {
 		resultsBox.setStyle("-fx-background-color: #278a2e;");
 
 		return new Scene(resultsBox,600, 500);
-	}
+	} // end of createResultsScene()
 
+	/*
+	 * getResultsPopup: Retrieves the results popup window.
+	 */
 	public Stage getResultsPopup(Stage primaryStage) {
 
 		String winner, earnings = "", userBet = "";
@@ -469,23 +605,37 @@ public class BaccaratGame extends Application {
 		Scene resultsScene = new Scene(resultsBox,500, 400);
 		resultsPopup.setScene(resultsScene);
 		return resultsPopup;
-	}
+	} // end of getResultPopUp()
 
+	/*
+	 * evaluateWinnings: Evaluates the winnings or losses for the current game round.
+	 */
 	public double evaluateWinnings() {
-
-		String winner  = gameLogic.whoWon(playerHand, bankerHand);
-
-		// user bet on winning side (player, bank or tie)
+		String winner = gameLogic.whoWon(playerHand, bankerHand);
+		hasPlacedBet = true;
+		// User bet on winning side (player, bank, or tie)
 		if (Objects.equals(winner, handBet)) {
-			 totalWinnings += currentBet;
-			 return currentBet;
-		}
-
-		else {
-			totalWinnings -= currentBet;
+			double winnings = 0;
+	
+			switch (handBet) {
+				case "Player":
+					winnings = currentBet * 2; // original bet back + winnings equal to their bet
+					break;
+				case "Banker":
+					winnings = currentBet * 1.95; // original bet back + winnings with a 5% deduction
+					break;
+				case "Draw":
+					winnings = currentBet * 9; // original bet back + 8x their bet
+					break;
+			}
+	
+			totalWinnings += winnings;
+			return winnings;
+		} else {
+			totalWinnings -= currentBet; // User lost, deduct their original bet
 			return currentBet * -1;
 		}
+	} // end of evaluateWinnings()
+	
 
-	}
-
-}
+} // end of BaccaratGame class
