@@ -7,13 +7,13 @@
  * File Description: Represents the dealer in the Baccarat game, responsible for managing the deck and dealing card
  */
 
- /*
-  * BaccaratDealer: This class manages the deck of cards and performs actions such as dealing hands and shuffling the deck.
-  */
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+
+/*
+* BaccaratDealer: This class manages the deck of cards and performs actions such as dealing hands and shuffling the deck.
+*/
 public class BaccaratDealer {
     ArrayList<Card> deck;
 
